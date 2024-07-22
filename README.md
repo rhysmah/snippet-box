@@ -1,2 +1,1 @@
 # snippet-box
-# snippet-box
