@@ -36,6 +36,10 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
+
+	// Update the status code from 200 (OK) to the more accurate
+	// 201 (Created), which is more accurate.
+	w.WriteHeader(201)
 	w.Write([]byte("Save a new snippet..."))
 }
 
