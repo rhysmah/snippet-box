@@ -16,6 +16,8 @@ import (
 //	r *http.Request: pointer to a struct which holds information about the
 //		current request (like the HTTP method and the requested URL)
 func home(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Server", "Go")
+
 	w.Write([]byte("Hello from Snippetbox"))
 }
 
@@ -27,8 +29,10 @@ func snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := fmt.Sprintf("Display specific snippet with ID %d", id)
-	w.Write([]byte(msg))
+	// http.ResponseWriter is an interface provided by the net/http package.
+	// It includes the Write method, which means it satisfies the io.Writer interface.
+	// Therefore, you can use http.ResponseWriter anywhere an io.Writer is expected.
+	fmt.Fprintf(w, "Display specific snippet with ID %d", id)
 }
 
 func snippetCreate(w http.ResponseWriter, r *http.Request) {
@@ -37,9 +41,8 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 
 func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
 
-	// Update the status code from 200 (OK) to the more accurate
-	// 201 (Created), which is more accurate.
-	w.WriteHeader(201)
+	// Update status code from 200 (OK) to the more accurate 201 (Created)
+	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Save a new snippet..."))
 }
 
