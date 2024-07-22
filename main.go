@@ -35,6 +35,10 @@ func snippetCreate(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Display a form for creating a new snippet..."))
 }
 
+func snippetCreatePost(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Save a new snippet..."))
+}
+
 func main() {
 
 	// A ServeMux is an HTTP request multiplexer.
@@ -42,11 +46,12 @@ func main() {
 	// When an incoming user request matches a registered pattern, it
 	// calls and executes the mapped handler function.
 	mux := http.NewServeMux()
-	mux.HandleFunc("/{$}", home)
+	mux.HandleFunc("GET /{$}", home)
 
 	// View the snippet with a particular ID
-	mux.HandleFunc("/snippet/view/{id}", snippetView)
-	mux.HandleFunc("/snippet/create", snippetCreate)
+	mux.HandleFunc("GET /snippet/view/{id}", snippetView)
+	mux.HandleFunc("GET /snippet/create", snippetCreate)
+	mux.HandleFunc("POST /snippet/create", snippetCreatePost)
 
 	log.Println("Starting server on :4000")
 
