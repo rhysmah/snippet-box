@@ -7,6 +7,12 @@ import (
 	"os"
 )
 
+// Define an application struct to hold the application-wide dependencies for the
+// web application. For now, include only the structured logger; more to be added.
+type application struct {
+	logger *slog.Logger
+}
+
 // TODO (if applicable): create a `config` struct for configuration settings
 
 func main() {
@@ -23,16 +29,20 @@ func main() {
 		AddSource: true, // Adds filename and line number to log
 	}))
 
+	app := &application{
+		logger: logger,
+	}
+
 	mux := http.NewServeMux()
 
 	// Creates a file server that serves files out of the "./ui/static" directory.
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 
 	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
-	mux.HandleFunc("GET /{$}", home) // Requires exact match
-	mux.HandleFunc("GET /snippet/view/{id}", snippetView)
-	mux.HandleFunc("GET /snippet/create", snippetCreate)
-	mux.HandleFunc("POST /snippet/create", snippetCreatePost)
+	mux.HandleFunc("GET /{$}", app.home) // Requires exact match
+	mux.HandleFunc("GET /snippet/view/{id}", app.snippetView)
+	mux.HandleFunc("GET /snippet/create", app.snippetCreate)
+	mux.HandleFunc("POST /snippet/create", app.snippetCreatePost)
 
 	// Because `addr` is a pointer to a string, we must
 	// dereference it to get access to its value.
