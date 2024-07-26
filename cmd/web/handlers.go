@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -13,31 +12,41 @@ import (
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Server", "Go")
 
-	webFiles := []string{
-		"./ui/html/base.tmpl.html", // base template must be first
-		"./ui/html/partials/nav.tmpl.html",
-		"./ui/html/pages/home.tmpl.html",
-	}
-
-	// The template.ParseFiles() function reads the template and creates
-	// a template.Template object, which has template-specific functions that
-	// allow us to interact and execute the template. If there's an error
-	// parsing the template, we log the error, then send the user an error
-	// message with the "Internal Server Error" error code.
-	ts, err := template.ParseFiles(webFiles...)
+	snippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 
-	// Execute() is used to write the template to the response body,
-	// which the reader receives and renders the template to their browser.
-	// The last parameter to Execute represents dynamic data to be rendered
-	// in the template
-	err = ts.ExecuteTemplate(w, "base", nil)
-	if err != nil {
-		app.serverError(w, r, err)
+	for _, snippet := range snippets {
+		fmt.Fprintf(w, "%+v", snippet)
 	}
+
+	// webFiles := []string{
+	// 	"./ui/html/base.tmpl.html", // base template must be first
+	// 	"./ui/html/partials/nav.tmpl.html",
+	// 	"./ui/html/pages/home.tmpl.html",
+	// }
+
+	// // The template.ParseFiles() function reads the template and creates
+	// // a template.Template object, which has template-specific functions that
+	// // allow us to interact and execute the template. If there's an error
+	// // parsing the template, we log the error, then send the user an error
+	// // message with the "Internal Server Error" error code.
+	// ts, err := template.ParseFiles(webFiles...)
+	// if err != nil {
+	// 	app.serverError(w, r, err)
+	// 	return
+	// }
+
+	// // Execute() is used to write the template to the response body,
+	// // which the reader receives and renders the template to their browser.
+	// // The last parameter to Execute represents dynamic data to be rendered
+	// // in the template
+	// err = ts.ExecuteTemplate(w, "base", nil)
+	// if err != nil {
+	// 	app.serverError(w, r, err)
+	// }
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {

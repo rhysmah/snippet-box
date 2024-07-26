@@ -78,5 +78,49 @@ func (m *SnippetModel) Get(id int) (Snippet, error) {
 
 // Return 10 most recent snippets
 func (m *SnippetModel) Latest() ([]Snippet, error) {
-	return nil, nil
+
+	stmt := `SELECT id, title, content, created, expires 
+	FROM snippets 
+	WHERE expires > UTC_TIMESTAMP() 
+	ORDER BY id DESC LIMIT 10`
+
+	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	// Closes the resultset once the function returns
+	// As long as the resultset is open, it'll keep
+	// the underlying database connection open. This
+	// can use up all the connections in your pool.
+	defer rows.Close()
+
+	// Will hold the Snippet structs returned
+	var snippets []Snippet
+
+	// Use `rows.Next()` to iterate throught thr rows in the resultset
+	// This prepares the first (and then each subsequent) row to be acted
+	// upon by the rows.Scan() method. If iteration over all the rows
+	// completes, then the resultset automatically closes itself and frees
+	// up the underlying database connection
+	for rows.Next() {
+		var s Snippet
+
+		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+		if err != nil {
+			return nil, err
+		}
+		// Append snippet to slice
+		snippets = append(snippets, s)
+	}
+
+	// Once the loop has finished, call rows.Err() to
+	// retrieve any error encountered during the iteration.
+	// ** IMPORTANT ** call this; do not assume a successful
+	// iteration over the entire resultset.
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return snippets, nil
 }
