@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/rhysmah/snippet-box/internal/models"
+
 	// We're not using anything from this import, so we prefix it with an
 	// underscore, else we'll get a compile-time error. We need the `init`
 	// function to run from this package so it can register itself with the
@@ -16,8 +18,11 @@ import (
 
 // Define an application struct to hold the application-wide dependencies for the
 // web application. For now, include only the structured logger; more to be added.
+// Add the SnippetModel from the `internal/models` directory; like the logger,
+// we've injected this as a dependency in our application.
 type application struct {
-	logger *slog.Logger
+	logger   *slog.Logger
+	snippets *models.SnippetModel
 }
 
 // TODO (if applicable): create a `config` struct for configuration settings
@@ -47,8 +52,11 @@ func main() {
 
 	defer db.Close()
 
+	// Initialize a models.SnippetModel instance containing the connection
+	// pool and add it to the application dependencies.
 	app := &application{
-		logger: logger,
+		logger:   logger,
+		snippets: &models.SnippetModel{DB: db},
 	}
 
 	// Because `addr` is a pointer to a string, we must
