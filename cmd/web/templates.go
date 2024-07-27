@@ -10,7 +10,7 @@ import (
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
-	// Use `filepath.Glob()` to fet a slice of all filepaths
+	// Use `filepath.Glob()` to get a slice of all filepaths
 	// that match the pattern. This gives us a slice of all the
 	// filepaths for out application 'page' templates.
 	pages, err := filepath.Glob("./ui/html/pages/*.tmpl.html")
@@ -24,12 +24,12 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		name := filepath.Base(page)
 
 		// Parse the files into a template set
-		ts, err := template.ParseFiles(".ui/html/base.tmpl.html")
+		ts, err := template.ParseFiles("./ui/html/base.tmpl.html")
 		if err != nil {
 			return nil, err
 		}
 
-		ts, err = ts.ParseGlob("/ui/html/partials/*.tmpl.html")
+		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl.html")
 		if err != nil {
 			return nil, err
 		}

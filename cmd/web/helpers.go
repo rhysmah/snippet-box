@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -19,11 +20,6 @@ func (app *application) serverError(w http.ResponseWriter, r *http.Request, err 
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-// clientError() helper sends specific status code and corresponding description to the user.
-func (app *application) clientError(w http.ResponseWriter, status int) {
-	http.Error(w, http.StatusText(status), status)
-}
-
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, data templateData) {
 
 	// Retrieve the appropriate template set from the cached based on page name (e.g., `home.tmpl.html`).
@@ -35,12 +31,19 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		return
 	}
 
-	w.WriteHeader(status)
+	// We'll write the page to a buffer; if there's no issue,
+	// then we can write the data to the response the user
+	// receives, else we send them an error.
+	buf := new(bytes.Buffer)
 
-	// Execute template set and write the response body;
-	// if any error, call serverError() helper.
-	err := ts.ExecuteTemplate(w, "base", data)
+	err := ts.ExecuteTemplate(buf, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
+		return
 	}
+
+	w.WriteHeader(status)
+
+	// If there's no error, write data from buffer to response
+	buf.WriteTo(w)
 }
