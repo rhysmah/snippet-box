@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"text/template"
 
 	"github.com/rhysmah/snippet-box/internal/models"
 )
@@ -22,31 +23,31 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%+v", snippet)
 	}
 
-	// webFiles := []string{
-	// 	"./ui/html/base.tmpl.html", // base template must be first
-	// 	"./ui/html/partials/nav.tmpl.html",
-	// 	"./ui/html/pages/home.tmpl.html",
-	// }
+	webFiles := []string{
+		"./ui/html/base.tmpl.html", // base template must be first
+		"./ui/html/partials/nav.tmpl.html",
+		"./ui/html/pages/home.tmpl.html",
+	}
 
-	// // The template.ParseFiles() function reads the template and creates
-	// // a template.Template object, which has template-specific functions that
-	// // allow us to interact and execute the template. If there's an error
-	// // parsing the template, we log the error, then send the user an error
-	// // message with the "Internal Server Error" error code.
-	// ts, err := template.ParseFiles(webFiles...)
-	// if err != nil {
-	// 	app.serverError(w, r, err)
-	// 	return
-	// }
+	// The template.ParseFiles() function reads the template and creates
+	// a template.Template object, which has template-specific functions that
+	// allow us to interact and execute the template. If there's an error
+	// parsing the template, we log the error, then send the user an error
+	// message with the "Internal Server Error" error code.
+	ts, err := template.ParseFiles(webFiles...)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
 
-	// // Execute() is used to write the template to the response body,
-	// // which the reader receives and renders the template to their browser.
-	// // The last parameter to Execute represents dynamic data to be rendered
-	// // in the template
-	// err = ts.ExecuteTemplate(w, "base", nil)
-	// if err != nil {
-	// 	app.serverError(w, r, err)
-	// }
+	// Execute() is used to write the template to the response body,
+	// which the reader receives and renders the template to their browser.
+	// The last parameter to Execute represents dynamic data to be rendered
+	// in the template
+	err = ts.ExecuteTemplate(w, "base", nil)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
@@ -56,9 +57,7 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use the SnippetModel's Get() method to retrieve data for a
-	// specific records based on its ID. If no matching reords is
-	// found, return a 404 Not Found response.
+	// Use SnippetModel's Get() method to retrieve data for specific record based on ID.
 	snippet, err := app.snippets.Get(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
@@ -68,7 +67,34 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	fmt.Fprintf(w, "%+v", snippet)
+
+	// Initialized slice containing paths to view.tmpl.html file.
+	// This includes the base layout and navication partial.
+	webFiles := []string{
+		"./ui/html/base.tmpl.html", // base template must be first
+		"./ui/html/partials/nav.tmpl.html",
+		"./ui/html/pages/view.tmpl.html",
+	}
+
+	// The template.ParseFiles() function reads the template and creates
+	// a template.Template object, which has template-specific functions that
+	// allow us to interact and execute the template. If there's an error
+	// parsing the template, we log the error, then send the user an error
+	// message with the "Internal Server Error" error code.
+	ts, err := template.ParseFiles(webFiles...)
+	if err != nil {
+		app.serverError(w, r, err)
+		return
+	}
+
+	// Execute() is used to write the template to the response body,
+	// which the reader receives and renders the template to their browser.
+	// The last parameter to Execute represents dynamic data to be rendered
+	// in the template
+	err = ts.ExecuteTemplate(w, "base", snippet)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
