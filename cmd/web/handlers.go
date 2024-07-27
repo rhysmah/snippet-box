@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"text/template"
 
 	"github.com/rhysmah/snippet-box/internal/models"
 )
@@ -19,35 +18,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	webFiles := []string{
-		"./ui/html/base.tmpl.html", // base template must be first
-		"./ui/html/partials/nav.tmpl.html",
-		"./ui/html/pages/home.tmpl.html",
-	}
-
-	// The template.ParseFiles() function reads the template and creates
-	// a template.Template object, which has template-specific functions that
-	// allow us to interact and execute the template. If there's an error
-	// parsing the template, we log the error, then send the user an error
-	// message with the "Internal Server Error" error code.
-	ts, err := template.ParseFiles(webFiles...)
-	if err != nil {
-		app.serverError(w, r, err)
-		return
-	}
-
-	data := templateData{
+	app.render(w, r, http.StatusOK, "home.tmpl.html", templateData{
 		Snippets: snippets,
-	}
-
-	// Execute() is used to write the template to the response body,
-	// which the reader receives and renders the template to their browser.
-	// The last parameter to Execute represents dynamic data to be rendered
-	// in the template
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, r, err)
-	}
+	})
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
@@ -68,37 +41,9 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Initialized slice containing paths to view.tmpl.html file.
-	// This includes the base layout and navication partial.
-	webFiles := []string{
-		"./ui/html/base.tmpl.html", // base template must be first
-		"./ui/html/partials/nav.tmpl.html",
-		"./ui/html/pages/view.tmpl.html",
-	}
-
-	// The template.ParseFiles() function reads the template and creates
-	// a template.Template object, which has template-specific functions that
-	// allow us to interact and execute the template. If there's an error
-	// parsing the template, we log the error, then send the user an error
-	// message with the "Internal Server Error" error code.
-	ts, err := template.ParseFiles(webFiles...)
-	if err != nil {
-		app.serverError(w, r, err)
-		return
-	}
-
-	data := templateData{
+	app.render(w, r, http.StatusOK, "view.tmpl.html", templateData{
 		Snippet: snippet,
-	}
-
-	// Execute() is used to write the template to the response body,
-	// which the reader receives and renders the template to their browser.
-	// The last parameter to Execute represents dynamic data to be rendered
-	// in the template
-	err = ts.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		app.serverError(w, r, err)
-	}
+	})
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
@@ -21,8 +22,9 @@ import (
 // Add the SnippetModel from the `internal/models` directory; like the logger,
 // we've injected this as a dependency in our application.
 type application struct {
-	logger   *slog.Logger
-	snippets *models.SnippetModel
+	logger        *slog.Logger
+	snippets      *models.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 // TODO (if applicable): create a `config` struct for configuration settings
@@ -52,11 +54,18 @@ func main() {
 
 	defer db.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
 	// Initialize a models.SnippetModel instance containing the connection
 	// pool and add it to the application dependencies.
 	app := &application{
-		logger:   logger,
-		snippets: &models.SnippetModel{DB: db},
+		logger:        logger,
+		snippets:      &models.SnippetModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	// Because `addr` is a pointer to a string, we must
