@@ -19,10 +19,6 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, snippet := range snippets {
-		fmt.Fprintf(w, "%+v", snippet)
-	}
-
 	webFiles := []string{
 		"./ui/html/base.tmpl.html", // base template must be first
 		"./ui/html/partials/nav.tmpl.html",
@@ -40,11 +36,15 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data := templateData{
+		Snippets: snippets,
+	}
+
 	// Execute() is used to write the template to the response body,
 	// which the reader receives and renders the template to their browser.
 	// The last parameter to Execute represents dynamic data to be rendered
 	// in the template
-	err = ts.ExecuteTemplate(w, "base", nil)
+	err = ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
 	}
@@ -87,11 +87,15 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data := templateData{
+		Snippet: snippet,
+	}
+
 	// Execute() is used to write the template to the response body,
 	// which the reader receives and renders the template to their browser.
 	// The last parameter to Execute represents dynamic data to be rendered
 	// in the template
-	err = ts.ExecuteTemplate(w, "base", snippet)
+	err = ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.serverError(w, r, err)
 	}
