@@ -6,9 +6,8 @@ import (
 	"time"
 )
 
-// Define a snippet type to hold the data for an individual
-// snippet. The fields correspond to the fields in the
-// MySQL snippets table.
+// Define a snippet type to hold the data for an individual snippet.
+// The fields correspond to the fields in the MySQL snippets table.
 type Snippet struct {
 	ID      int // Created automatically by DB
 	Title   string
@@ -17,7 +16,7 @@ type Snippet struct {
 	Expires time.Time
 }
 
-// Define a SnippetModel type which warps an sql.DB connection pool
+// Define a SnippetModel type which wraps an sql.DB connection pool
 type SnippetModel struct {
 	DB *sql.DB
 }
