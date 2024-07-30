@@ -11,6 +11,13 @@ import (
 	"github.com/rhysmah/snippet-box/internal/models"
 )
 
+type SnippetCreateForm struct {
+	Title       string
+	Content     string
+	Expires     int
+	FieldErrors map[string]string
+}
+
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	snippets, err := app.snippets.Latest()
 	if err != nil {
@@ -50,6 +57,11 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
+
+	data.Form = SnippetCreateForm{
+		Expires: 365,
+	}
+
 	app.render(w, r, http.StatusOK, "create.tmpl.html", data)
 }
 
@@ -62,9 +74,6 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
-
 	// Convert the string to an integer
 	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
 	if err != nil {
@@ -72,36 +81,42 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Initialize a map to hold validation errors for the form fields
-	fieldErrors := make(map[string]string)
+	form := SnippetCreateForm{
+		Title:       r.PostForm.Get("title"),
+		Content:     r.PostForm.Get("content"),
+		Expires:     expires,
+		FieldErrors: map[string]string{},
+	}
 
 	// (1) Check that title value is:
 	//  - not blank
 	//  - 100 characters or less
-	if strings.TrimSpace(title) == "" {
-		fieldErrors["title"] = "Title cannot be blank"
-	} else if utf8.RuneCountInString(title) > 100 {
-		fieldErrors["title"] = "Title cannot be more than 100 characters long"
+	if strings.TrimSpace(form.Title) == "" {
+		form.FieldErrors["title"] = "Title cannot be blank"
+	} else if utf8.RuneCountInString(form.Title) > 100 {
+		form.FieldErrors["title"] = "Title cannot be more than 100 characters long"
 	}
 
 	// (2) Check that the content value isn't blank.
-	if strings.TrimSpace(content) == "" {
-		fieldErrors["content"] = "Content cannot be blank"
+	if strings.TrimSpace(form.Content) == "" {
+		form.FieldErrors["content"] = "Content cannot be blank"
 	}
 
 	// (3) Check that the expires is valid.
 	if expires != 1 && expires != 7 && expires != 365 {
-		fieldErrors["expires"] = "Expiry must be either 1, 7, or 365 days"
+		form.FieldErrors["expires"] = "Expiry must be either 1, 7, or 365 days"
 	}
 
 	// If there are any errors, dump them into a plain-text
 	// HTML response and return them from the handler
-	if len(fieldErrors) > 0 {
-		fmt.Fprint(w, fieldErrors)
+	if len(form.FieldErrors) > 0 {
+		data := app.newTemplateData(r)
+		data.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "create.tmpl.html", data)
 		return
 	}
 
-	id, err := app.snippets.Insert(title, content, expires)
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, r, err)
 		return

@@ -4,17 +4,40 @@
 <form action='/snippet/create' method='POST'>
     <div>
         <label>Title:</label>
-        <input type='text' name='title'>
+
+        <!-- Check if FieldErrors is empty. If it's not, display error message -->
+         {{with .Form.FieldErrors.title}}
+            <label class='error'>{{.}}</label>
+         {{end}}
+
+         <!-- If there are no errors, re-display the title -->
+        <input type='text' name='title' value='{{.Form.Title}}'>
     </div> 
+
     <div>
         <label>Content:</label>
-        <textarea name='content'></textarea> </div>
+
+        <!-- If there's an error assoicated with content, display the error -->
+        {{with .Form.FieldErrors.content}}
+           <label class='error'>{{.}}</label>
+        {{end}}
+
+        <textarea name='content' value='{{.Form.Content}}'></textarea>
+    </div>
+    
     <div>
         <label>Delete in:</label>
-        <input type='radio' name='expires' value='365' checked> One Year 
-        <input type='radio' name='expires' value='7'> One Week
-        <input type='radio' name='expires' value='1'> One Day
-    </div> 
+        
+        <!-- And render the value of .Form.FieldErrors.expires if it is not empty. --> 
+         {{with .Form.FieldErrors.expires}}
+        <label class='error'>{{.}}</label>
+        {{end}}
+        <!-- Use the `if` action to check if value of re-populated expires field equals 1, 7, or 365. 
+         If it does, then render `checked` attribute so that the radio input is re-selected. -->
+        <input type='radio' name='expires' value='365' {{if (eq .Form.Expires 365)}}checked{{end}}> One Year
+        <input type='radio' name='expires' value='7' {{if (eq .Form.Expires 7)}}checked{{end}}> One Week
+        <input type='radio' name='expires' value='1' {{if (eq .Form.Expires 1)}}checked{{end}}> One Day </div>
+
     <div>
         <input type='submit' value='Publish snippet'> 
     </div>
