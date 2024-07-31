@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
+
+	"github.com/go-playground/form/v4"
 )
 
 // serverError() helper writes log entry at Error level (including request method and URI as atts),
@@ -57,4 +60,30 @@ func (app *application) newTemplateData(r *http.Request) templateData {
 	return templateData{
 		Year: time.Now().Year(),
 	}
+}
+
+func (app *application) decodePostForm(r *http.Request, dst any) error {
+
+	// Call ParseForm on the request
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+
+	// Attempt to decode our form; pass the target destination, `dst`, as first param
+	err = app.formDecoder.Decode(dst, r.PostForm)
+	if err != nil {
+
+		// If we attempt to use an invalid target destination, Decode() will
+		// return an error with type *form.InvalidDecoderError
+		var invalidDecoderError *form.InvalidDecoderError
+
+		if errors.As(err, &invalidDecoderError) {
+			panic(err)
+		}
+
+		return err
+	}
+
+	return nil
 }

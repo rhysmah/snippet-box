@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-playground/form/v4"
 	"github.com/rhysmah/snippet-box/internal/models"
 
 	// We're not using anything from this import, so we prefix it with an
@@ -25,6 +26,7 @@ type application struct {
 	logger        *slog.Logger
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
+	formDecoder   *form.Decoder
 }
 
 // TODO (if applicable): create a `config` struct for configuration settings
@@ -60,12 +62,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	formDecoder := form.NewDecoder()
+
 	// Initialize a models.SnippetModel instance containing the connection
 	// pool and add it to the application dependencies.
 	app := &application{
 		logger:        logger,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
+		formDecoder:   formDecoder,
 	}
 
 	// Because `addr` is a pointer to a string, we must
