@@ -41,14 +41,8 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Retrieves and deletes the "flash" key (and value) from the session
-	flash := app.sessionManager.PopString(r.Context(), "flash")
-
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
-
-	// Pass the flash message to template
-	data.Flash = flash
 
 	app.render(w, r, http.StatusOK, "view.tmpl.html", data)
 }
