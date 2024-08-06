@@ -7,7 +7,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/alexedwards/scs/stores/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	"github.com/rhysmah/snippet-box/internal/models"
 
@@ -23,29 +26,21 @@ import (
 // Add the SnippetModel from the `internal/models` directory; like the logger,
 // we've injected this as a dependency in our application.
 type application struct {
-	logger        *slog.Logger
-	snippets      *models.SnippetModel
-	templateCache map[string]*template.Template
-	formDecoder   *form.Decoder
+	logger         *slog.Logger
+	snippets       *models.SnippetModel
+	templateCache  map[string]*template.Template
+	formDecoder    *form.Decoder
+	sessionManager *scs.SessionManager
 }
 
 // TODO (if applicable): create a `config` struct for configuration settings
 
 func main() {
-
-	// Define a new command-line flag so we can set the network address.
-	// flag.Parse() reads CL flag value and assigns it to `addr` variable.
 	addr := flag.String("addr", ":4000", "HTTP network address")
-
-	// CL flag for the MySQL DSN string.
 	dsn := flag.String("dsn", "web:1234@/snippetbox?parseTime=true", "MySQL data source name")
 	flag.Parse()
 
-	// Use the slog.New() function to initialize a new structured (custom) logger
-	// For now, it'll write to the stdout and use the default settings.
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		AddSource: true, // Adds filename and line number to log
-	}))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	// Database
 	db, err := openDB(*dsn)
@@ -64,8 +59,14 @@ func main() {
 
 	formDecoder := form.NewDecoder()
 
-	// Initialize a models.SnippetModel instance containing the connection
-	// pool and add it to the application dependencies.
+	// Initialize new session manager; configure it to
+	// use MySQL database as the session store. Set a
+	// lifetime of 12 hours, meaning sessions will expire
+	// 12 hours after the sessions are created and stored.
+	sessionManager := scs.New()
+	sessionManager.Store = mysqlstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	app := &application{
 		logger:        logger,
 		snippets:      &models.SnippetModel{DB: db},
