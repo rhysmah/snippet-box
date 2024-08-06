@@ -41,8 +41,14 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Retrieves and deletes the "flash" key (and value) from the session
+	flash := app.sessionManager.PopString(r.Context(), "flash")
+
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
+
+	// Pass the flash message to template
+	data.Flash = flash
 
 	app.render(w, r, http.StatusOK, "view.tmpl.html", data)
 }
@@ -65,7 +71,6 @@ type SnippetCreateForm struct {
 }
 
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
-
 	var form SnippetCreateForm
 
 	err := app.decodePostForm(r, &form)
@@ -92,5 +97,8 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
 		app.serverError(w, r, err)
 		return
 	}
+
+	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
+
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }

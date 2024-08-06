@@ -9,10 +9,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/alexedwards/scs/stores/mysqlstore"
+	"github.com/rhysmah/snippet-box/internal/models"
+
+	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
-	"github.com/rhysmah/snippet-box/internal/models"
 
 	// We're not using anything from this import, so we prefix it with an
 	// underscore, else we'll get a compile-time error. We need the `init`
@@ -48,7 +49,6 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
-
 	defer db.Close()
 
 	templateCache, err := newTemplateCache()
@@ -68,10 +68,11 @@ func main() {
 	sessionManager.Lifetime = 12 * time.Hour
 
 	app := &application{
-		logger:        logger,
-		snippets:      &models.SnippetModel{DB: db},
-		templateCache: templateCache,
-		formDecoder:   formDecoder,
+		logger:         logger,
+		snippets:       &models.SnippetModel{DB: db},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
 	}
 
 	// Because `addr` is a pointer to a string, we must
