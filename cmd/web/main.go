@@ -75,6 +75,12 @@ func main() {
 		sessionManager: sessionManager,
 	}
 
+	server := &http.Server{
+		Addr:     *addr,
+		Handler:  app.routes(),
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
+	}
+
 	// Because `addr` is a pointer to a string, we must
 	// dereference it to get access to its value.
 	// The first argument is the message; the variadic variables that
@@ -83,7 +89,8 @@ func main() {
 	// and prevents, for example, leaving out a key or value.
 	logger.Info("starting server", slog.String("addr", *addr))
 
-	err = http.ListenAndServe(*addr, app.routes())
+	err = server.ListenAndServe()
+
 	logger.Error(err.Error())
 	os.Exit(1)
 }
