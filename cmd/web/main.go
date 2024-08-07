@@ -67,6 +67,9 @@ func main() {
 	sessionManager.Store = mysqlstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
 
+	// Cookies will ONLY be sent when using HTTPS, not HTTP
+	sessionManager.Cookie.Secure = true
+
 	app := &application{
 		logger:         logger,
 		snippets:       &models.SnippetModel{DB: db},
@@ -89,7 +92,8 @@ func main() {
 	// and prevents, for example, leaving out a key or value.
 	logger.Info("starting server", slog.String("addr", *addr))
 
-	err = server.ListenAndServe()
+	// Pass location of certificate and private key
+	err = server.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 
 	logger.Error(err.Error())
 	os.Exit(1)
