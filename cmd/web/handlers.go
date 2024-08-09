@@ -120,7 +120,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the form contents using our helper functions.
-	form.CheckField(validator.NotBlank(form.Name), "name", "name cannot be blank")
+	form.CheckField(validator.NotBlank(form.Name), "name", "Name cannot be blank")
 	form.CheckField(validator.NotBlank(form.Email), "email", "Email cannot be blank")
 	form.CheckField(validator.Matches(form.Email, validator.EmailRX), "email", "Email address must be valid")
 	form.CheckField(validator.NotBlank(form.Password), "password", "Password cannot be blank")
@@ -136,7 +136,6 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 
 	// Otherwise, send placeholder response
 	fmt.Fprintln(w, "Create new user...")
-
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
