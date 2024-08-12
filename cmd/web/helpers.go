@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-playground/form/v4"
+	"github.com/justinas/nosurf"
 )
 
 // serverError() helper writes log entry at Error level (including request method and URI as atts),
@@ -61,6 +62,7 @@ func (app *application) newTemplateData(r *http.Request) templateData {
 		Year:            time.Now().Year(),
 		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
 		IsAuthenticated: app.isAuthenticated(r),
+		CSRFToken:       nosurf.Token(r),
 	}
 }
 
