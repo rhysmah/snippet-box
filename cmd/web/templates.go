@@ -62,9 +62,10 @@ func newTemplateCache() (map[string]*template.Template, error) {
 // of dynamic data, so a struct is a way to contain
 // one datum composed of many data.
 type templateData struct {
-	Year     int
-	Snippet  models.Snippet
-	Snippets []models.Snippet
-	Form     any
-	Flash    string
+	Year            int
+	Snippet         models.Snippet
+	Snippets        []models.Snippet
+	Form            any
+	Flash           string
+	IsAuthenticated bool
 }
