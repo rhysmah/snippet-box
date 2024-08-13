@@ -81,7 +81,8 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// Retrieve authenticatedUserID value from session
-		// If the int zero value (0) is returned, then the user does not exist
+		// If the int zero value (0) is returned, then the user does not exist.
+		// In that case, call the next handler with an UNCHANGED context.
 		id := app.sessionManager.GetInt(r.Context(), "authenticatedUserID")
 		if id == 0 {
 			next.ServeHTTP(w, r)
