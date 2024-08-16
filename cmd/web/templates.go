@@ -2,10 +2,12 @@ package main
 
 import (
 	"html/template"
+	"io/fs"
 	"path/filepath"
 	"time"
 
 	"github.com/rhysmah/snippet-box/internal/models"
+	"github.com/rhysmah/snippet-box/ui"
 )
 
 func humanDate(t time.Time) string {
@@ -19,37 +21,25 @@ var functions = template.FuncMap{
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
-	// Use `filepath.Glob()` to get a slice of all filepaths
-	// that match the pattern. This gives us a slice of all the
-	// filepaths for out application 'page' templates.
-	pages, err := filepath.Glob("./ui/html/pages/*.tmpl.html")
+	pages, err := fs.Glob(ui.Files, "html/pages/*.tmpl.html")
 	if err != nil {
 		return nil, err
 	}
 
 	for _, page := range pages {
-		// Extract the filename (e.g., `home.tmpl.html`) from
-		// the full filepath and assign it to `name` variable
 		name := filepath.Base(page)
 
-		// Parse the files into a template set
-		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl.html")
+		patterns := []string{
+			"html/base.tmpl.html",
+			"html/partials/*.tmpl.html",
+			page,
+		}
+
+		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
 		if err != nil {
 			return nil, err
 		}
 
-		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl.html")
-		if err != nil {
-			return nil, err
-		}
-
-		ts, err = ts.ParseFiles(page)
-		if err != nil {
-			return nil, err
-		}
-
-		// Add template set to map; use name of page
-		// (e.g. `home.tmpl.html`) as the key.
 		cache[name] = ts
 	}
 
